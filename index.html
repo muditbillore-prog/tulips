@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Distance Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;1,9..144,400;1,9..144,500&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: one centered column, one question per screen, night-sky plum with a rose-gold accent. */
+:root {
+  --bg: #1d1226;
+  --bg-2: #2a1a36;
+  --ink: #f6ebe6;
+  --muted: #b9a5b8;
+  --accent: #f0a79b;
+  --accent-ink: #2a1320;
+  --line: #4a3558;
+  --display: "Fraunces", Georgia, "Times New Roman", serif;
+  --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+  background: radial-gradient(1200px 600px at 80% -10%, #3b2148 0%, transparent 60%), var(--bg);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.55;
+  display: flex;
+  justify-content: center;
+}
+main { width: 100%; max-width: 560px; padding: 28px 20px 48px; display: flex; flex-direction: column; gap: 28px; min-height: 100vh; }
+.top { display: flex; align-items: center; gap: 14px; min-height: 20px; }
+.bar { flex: 1; height: 3px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.bar > span { display: block; height: 100%; width: 0; background: var(--accent); transition: width .35s ease; }
+.count { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; min-width: 44px; text-align: right; }
+.stage { display: flex; flex-direction: column; gap: 22px; flex: 1; }
+.kicker { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); margin: 0; }
+h1, h2 { font-family: var(--display); font-weight: 500; line-height: 1.15; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(38px, 9vw, 52px); font-style: italic; }
+h2 { font-size: clamp(26px, 6vw, 32px); }
+p { margin: 0; }
+.lede { color: var(--muted); max-width: 46ch; }
+.opts { display: flex; flex-direction: column; gap: 10px; }
+.opt {
+  font: inherit; color: var(--ink); text-align: left; cursor: pointer;
+  background: var(--bg-2); border: 1px solid var(--line); border-radius: 14px;
+  padding: 14px 16px; transition: border-color .15s, background .15s, transform .15s;
+}
+.opt:hover { border-color: var(--accent); }
+.opt:active { transform: scale(.99); }
+.opt.on { border-color: var(--accent); background: #3a2147; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+textarea {
+  font: inherit; color: var(--ink); width: 100%; min-height: 130px; resize: vertical;
+  background: var(--bg-2); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px;
+}
+textarea::placeholder { color: #8d7a8f; }
+.row { display: flex; gap: 12px; align-items: center; justify-content: space-between; margin-top: auto; flex-wrap: wrap; }
+.btn {
+  font: inherit; font-weight: 600; cursor: pointer; border-radius: 999px; padding: 13px 26px;
+  background: var(--accent); color: var(--accent-ink); border: 1px solid var(--accent);
+}
+.btn:hover { filter: brightness(1.06); }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+.btn.ghost:hover { border-color: var(--accent); }
+.link { background: none; border: 0; color: var(--muted); font: inherit; cursor: pointer; padding: 8px 0; }
+.link:hover { color: var(--ink); }
+.meters { display: flex; flex-direction: column; gap: 12px; margin: 4px 0; }
+.meter { display: grid; grid-template-columns: 110px 1fr 40px; gap: 12px; align-items: center; font-size: 15px; }
+.meter .track { height: 8px; background: var(--line); border-radius: 8px; overflow: hidden; }
+.meter .track span { display: block; height: 100%; background: var(--accent); border-radius: 8px; }
+.meter .pct { color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+.note {
+  border-left: 2px solid var(--accent); padding: 4px 0 4px 16px; color: var(--ink);
+  font-family: var(--display); font-style: italic; font-size: 20px; line-height: 1.4;
+}
+.note small { display: block; font-family: var(--body); font-style: normal; font-size: 14px; color: var(--muted); margin-top: 8px; }
+.copybox { width: 100%; min-height: 110px; font-size: 14px; }
+.hint { font-size: 14px; color: var(--muted); }
+.yn { display: flex; gap: 14px; flex-wrap: wrap; }
+.yn .btn { flex: 1; min-width: 120px; font-size: 19px; padding: 16px 26px; }
+.shake { animation: shake .4s; }
+@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-7px); } 75% { transform: translateX(7px); } }
+.msg { min-height: 26px; color: var(--accent); font-family: var(--display); font-style: italic; font-size: 19px; }
+.hearts { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+.hearts span { position: absolute; bottom: -40px; color: var(--accent); opacity: .85; animation: rise linear forwards; }
+@keyframes rise { to { transform: translateY(-110vh) rotate(20deg); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } .hearts, .shake { animation: none !important; } .hearts { display: none; } }
+@media (max-width: 420px) { .meter { grid-template-columns: 92px 1fr 38px; } }
+</style>
+</head>
+<body>
+<main>
+  <div class="top" id="top" hidden>
+    <div class="bar"><span id="fill"></span></div>
+    <div class="count" id="count"></div>
+  </div>
+  <div class="stage" id="stage"></div>
+</main>
+
+<script>
+/* Edit these two lines to personalise. */
+var FROM = "Mudit";
+var HER = "Khushi";
+
+var TRAITS = {
+  cozy:  { name: "Cozy",        title: "The Slow Burn",
+           text: "You love in small, steady ways: the good-morning text, the late call where nobody needs to talk, the feeling of being at home with someone. You make distance feel shorter just by being warm." },
+  play:  { name: "Playful",     title: "The Spark",
+           text: "You flirt with your whole personality. Inside jokes, teasing, a meme at the perfect moment. You make someone laugh until they forget how many miles are between you." },
+  deep:  { name: "Deep",        title: "The Soul Reader",
+           text: "You notice everything and you remember it. You want the real answers, the 3 a.m. thoughts, the things people usually keep quiet. Being known by you feels rare." },
+  adv:   { name: "Adventurous", title: "The Runaway Romantic",
+           text: "You believe in showing up. Plans, tickets, countdowns, a story you can't wait to start. For you, distance is just the opening chapter." }
+};
+
+var STEPS = [
+  { type: "mc", q: "It's 9 pm and you're far apart. Which message would make you smile the most?",
+    o: [["A voice note of me rambling about my day", "cozy"],
+        ["A random meme that made me think of you", "play"],
+        ["“Tell me one thing you're thinking about tonight.”", "deep"],
+        ["A screenshot of a flight price to come see you", "adv"]] },
+  { type: "mc", q: "We finally meet. What does the perfect first day look like?",
+    o: [["A long walk with no plan and food we find along the way", "adv"],
+        ["Blanket, snacks and a movie neither of us really watches", "cozy"],
+        ["A quiet cafe, talking until they ask us to leave", "deep"],
+        ["Bowling or arcade games with loud trash talk", "play"]] },
+  { type: "text", q: "What is one small thing that instantly makes your day better?",
+    ph: "Anything. Big or tiny." },
+  { type: "mc", q: "What makes you feel safe with someone?",
+    o: [["Honesty, even when it's hard to say", "deep"],
+        ["The same warmth every single day", "cozy"],
+        ["They show up when they say they will", "adv"],
+        ["I can laugh with them without pretending", "play"]] },
+  { type: "mc", q: "We have been on a call for three hours. What is happening?",
+    o: [["Mostly quiet, both just there", "cozy"],
+        ["Arguing about something completely pointless", "play"],
+        ["Sharing fears, dreams and things we rarely say aloud", "deep"],
+        ["Planning a trip we might actually take", "adv"]] },
+  { type: "mc", q: "We are on a trek and we finally reach the top. What happens next?",
+    o: [["We sit quietly and just take in the view", "cozy"],
+        ["Photos, a victory dance and bad jokes", "play"],
+        ["A real talk about life with the whole valley below us", "deep"],
+        ["You are already asking which mountain is next", "adv"]] },
+  { type: "text", q: "What is a memory that still makes you smile every time you think of it?",
+    ph: "Tell me the story." },
+  { type: "mc", q: "Distance is hard. What helps the most?",
+    o: [["A good-morning and goodnight ritual", "cozy"],
+        ["Honest talks about how we really feel", "deep"],
+        ["A countdown to the next time we meet", "adv"],
+        ["Making each other laugh every single day", "play"]] },
+  { type: "text", q: "Finish this sentence: I know I'm falling for someone when...",
+    ph: "No wrong answers. Be honest." },
+  { type: "mc", q: "Last one. Is the distance worth it for the right person?",
+    o: [["Yes. Completely.", "adv"],
+        ["Yes, if the effort goes both ways", "deep"],
+        ["Ask me again after we meet", "play"],
+        ["I've already been thinking about it", "cozy"]] },
+  { type: "text", q: "Which song should I listen to so I understand you better? (I already know “Khat” is on the list.)",
+    ph: "A song, and what it means to you." },
+  { type: "impressed", q: "Be honest. Are you impressed?" }
+];
+
+var state = { i: -1, answers: [], noTaps: 0 };
+
+/* Submit: sends her answers to the form service once, when she finishes. */
+var FORM_URL = "https://formspree.io/f/xjywopjy";
+var saveOk = null;
+var sent = null;
+function save(done) {
+  if (!done) return Promise.resolve();
+  if (sent) return sent;
+  if (!/^https:\/\/formspree\.io\/f\//.test(FORM_URL)) { saveOk = false; return Promise.resolve(); }
+  var r = tally();
+  var body = { _subject: "Khushi finished the quiz", vibe: TRAITS[r.top].title, tried_No_times: state.noTaps };
+  STEPS.forEach(function (s, i) { var a = state.answers[i]; body["Q" + (i + 1) + ". " + s.q] = a && a.text ? a.text : "(skipped)"; });
+  sent = fetch(FORM_URL, { method: "POST", headers: { "Content-Type": "application/json", "Accept": "application/json" }, body: JSON.stringify(body) })
+    .then(function (res) { saveOk = res.ok; }, function () { saveOk = false; });
+  return sent;
+}
+var stage = document.getElementById("stage");
+var top_ = document.getElementById("top");
+var fill = document.getElementById("fill");
+var count = document.getElementById("count");
+
+function el(tag, attrs, kids) {
+  var n = document.createElement(tag);
+  attrs = attrs || {};
+  for (var k in attrs) {
+    if (k === "class") n.className = attrs[k];
+    else if (k === "text") n.textContent = attrs[k];
+    else if (k.slice(0, 2) === "on") n.addEventListener(k.slice(2), attrs[k]);
+    else n.setAttribute(k, attrs[k]);
+  }
+  (kids || []).forEach(function (c) { n.appendChild(c); });
+  return n;
+}
+
+function progress() {
+  var done = Math.max(0, state.i);
+  fill.style.width = (done / STEPS.length * 100) + "%";
+  count.textContent = (state.i + 1) + " / " + STEPS.length;
+}
+
+function tulip() {
+  var d = el("div", { "aria-hidden": "true" });
+  d.innerHTML = '<svg viewBox="0 0 64 96" width="44" height="66"><path d="M32 92 V44" stroke="#8fb58a" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M32 80 C19 76 13 67 11 56 C22 58 30 64 32 73Z" fill="#8fb58a"/><path d="M32 46 C17 44 13 27 15 11 C21 18 27 20 32 13 C37 20 43 18 49 11 C51 27 47 44 32 46Z" fill="#f0a79b"/></svg>';
+  return d;
+}
+
+function intro() {
+  state.i = -1;
+  top_.hidden = true;
+  stage.replaceChildren(
+    tulip(),
+    el("p", { class: "kicker", text: "Just for you" }),
+    el("h1", { text: HER ? "Hey " + HER + ". I made you a quiz." : "Hey you. I made you a quiz." }),
+    el("p", { class: "lede", text: "Twelve questions, a few silly and a few real. There are no right answers. It takes about three minutes, and at the end you get your love vibe." }),
+    el("div", { class: "row" }, [
+      el("span", { class: "hint", text: "Made by " + FROM }),
+      el("button", { class: "btn", id: "start", text: "Start", onclick: function () { go(0); } })
+    ])
+  );
+}
+
+function go(i) {
+  state.i = i;
+  if (i >= STEPS.length) return result();
+  top_.hidden = false;
+  progress();
+  var s = STEPS[i];
+  var kids = [el("p", { class: "kicker", text: s.type === "text" ? "In your own words" : "Pick the closest one" }),
+              el("h2", { text: s.q })];
+  var saved = state.answers[i];
+
+  if (s.type === "impressed") {
+    var converted = false;
+    var msg = el("p", { class: "msg", id: "msg", "aria-live": "polite", text: "" });
+    var yes = el("button", { class: "btn", id: "yes", text: "Yes" });
+    var no = el("button", { class: "btn ghost", id: "no", text: "No" });
+    var finish = function () {
+      state.answers[i] = { text: state.noTaps ? "Yes (tried No " + state.noTaps + "x first)" : "Yes", trait: null };
+      save(false);
+      celebrate();
+    };
+    yes.addEventListener("click", finish);
+    no.addEventListener("click", function () {
+      if (converted) return finish();
+      converted = true;
+      state.noTaps++;
+      no.textContent = "Yes";
+      no.classList.remove("ghost");
+      no.classList.add("shake");
+      msg.textContent = "Loading your answer... error. That button only knows one word.";
+      setTimeout(function () { no.classList.remove("shake"); }, 450);
+    });
+    kids.push(el("div", { class: "yn" }, [no, yes]));
+    kids.push(msg);
+    kids.push(el("div", { class: "row" }, [
+      el("button", { class: "link", id: "back", text: "Back", onclick: function () { go(i - 1); } }), el("span")
+    ]));
+    stage.replaceChildren.apply(stage, kids);
+    window.scrollTo(0, 0);
+    return;
+  }
+
+  if (s.type === "mc") {
+    var box = el("div", { class: "opts" });
+    s.o.forEach(function (o, idx) {
+      var b = el("button", { class: "opt" + (saved && saved.idx === idx ? " on" : ""), id: "opt" + idx, text: o[0],
+        onclick: function () {
+          state.answers[i] = { idx: idx, text: o[0], trait: o[1] };
+          save(false);
+          Array.prototype.forEach.call(box.children, function (c) { c.classList.remove("on"); });
+          b.classList.add("on");
+          setTimeout(function () { go(i + 1); }, 300);
+        } });
+      box.appendChild(b);
+    });
+    kids.push(box);
+    kids.push(el("div", { class: "row" }, [
+      i > 0 ? el("button", { class: "link", id: "back", text: "Back", onclick: function () { go(i - 1); } }) : el("span"),
+      saved ? el("button", { class: "link", id: "keep", text: "Next", onclick: function () { go(i + 1); } }) : el("span")
+    ]));
+  } else {
+    var ta = el("textarea", { id: "ta", placeholder: s.ph, "aria-label": s.q });
+    ta.value = saved ? saved.text : "";
+    var nextBtn = el("button", { class: "btn", id: "next", text: ta.value.trim() ? "Next" : "Skip",
+      onclick: function () {
+        var t = ta.value.trim();
+        state.answers[i] = { text: t, trait: null };
+        save(false);
+        go(i + 1);
+      } });
+    ta.addEventListener("input", function () { nextBtn.textContent = ta.value.trim() ? "Next" : "Skip"; });
+    kids.push(ta);
+    kids.push(el("div", { class: "row" }, [
+      el("button", { class: "link", id: "back", text: "Back", onclick: function () {
+        state.answers[i] = { text: ta.value.trim(), trait: null }; go(i - 1); } }),
+      nextBtn
+    ]));
+  }
+  stage.replaceChildren.apply(stage, kids);
+  window.scrollTo(0, 0);
+}
+
+function celebrate() {
+  top_.hidden = true;
+  var hearts = el("div", { class: "hearts", "aria-hidden": "true" });
+  for (var k = 0; k < 28; k++) {
+    var h = el("span", { text: "♥" });
+    h.style.left = (Math.random() * 96) + "%";
+    h.style.fontSize = (16 + Math.random() * 28) + "px";
+    h.style.animationDuration = (3.5 + Math.random() * 3.5) + "s";
+    h.style.animationDelay = (Math.random() * 1.5) + "s";
+    hearts.appendChild(h);
+  }
+  stage.replaceChildren(
+    el("p", { class: "kicker", text: "I knew it" }),
+    el("h1", { text: "Good answer." }),
+    el("p", { class: "lede", text: "That is the answer I was hoping for. One more screen and you get your love vibe." }),
+    el("div", { class: "row" }, [
+      el("span"),
+      el("button", { class: "btn", id: "see", text: "See my vibe", onclick: function () { result(); } })
+    ]),
+    hearts
+  );
+  window.scrollTo(0, 0);
+}
+
+function tally() {
+  var t = { cozy: 0, play: 0, deep: 0, adv: 0 }, n = 0;
+  state.answers.forEach(function (a) { if (a && a.trait) { t[a.trait]++; n++; } });
+  var order = ["cozy", "play", "deep", "adv"];
+  var top = order.reduce(function (best, k) { return t[k] > t[best] ? k : best; }, "cozy");
+  return { t: t, n: n, top: top };
+}
+
+function summaryText(r) {
+  var lines = [];
+  lines.push("My love vibe: " + TRAITS[r.top].title);
+  lines.push("");
+  STEPS.forEach(function (s, i) {
+    var a = state.answers[i];
+    lines.push(s.q);
+    lines.push("-> " + (a && a.text ? a.text : "(skipped)"));
+    lines.push("");
+  });
+  return lines.join("\n").trim();
+}
+
+function result() {
+  top_.hidden = false;
+  fill.style.width = "100%";
+  count.textContent = "Done";
+  var r = tally();
+  var T = TRAITS[r.top];
+  var meters = el("div", { class: "meters" });
+  ["cozy", "play", "deep", "adv"].forEach(function (k) {
+    var pct = r.n ? Math.round(r.t[k] / r.n * 100) : 0;
+    var span = el("span"); span.style.width = pct + "%";
+    meters.appendChild(el("div", { class: "meter" }, [
+      el("span", { text: TRAITS[k].name }),
+      el("div", { class: "track" }, [span]),
+      el("span", { class: "pct", text: pct + "%" })
+    ]));
+  });
+
+  var hint = el("p", { class: "hint", id: "savehint", text: "Copy your answers and send them to me. I want to read every one." });
+  save(true).then(function () {
+    if (saveOk) hint.textContent = "Your answers were sent to " + FROM + ". You can also copy them below if you like.";
+  });
+  var box = el("textarea", { class: "copybox", id: "summary", readonly: "readonly", "aria-label": "Your answers" });
+  box.value = summaryText(r);
+  var status = el("span", { class: "hint", id: "status", text: "" });
+  var copy = el("button", { class: "btn", id: "copy", text: "Copy my answers", onclick: function () {
+    var done = function () { status.textContent = "Copied. Paste it in our chat."; };
+    var fallback = function () { box.focus(); box.select(); status.textContent = "Selected. Copy it and paste it in our chat."; };
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(box.value).then(done, fallback);
+      } else { fallback(); }
+    } catch (e) { fallback(); }
+  } });
+
+  stage.replaceChildren(
+    tulip(),
+    el("p", { class: "kicker", text: "Your love vibe" }),
+    el("h1", { text: T.title }),
+    el("p", { class: "lede", text: T.text }),
+    meters,
+    el("div", { class: "note" }, [
+      document.createTextNode("Whatever the quiz says, I'd still like to know the real answers. I'll tell you mine too. And when we finally meet, I owe you a bunch of tulips."),
+      el("small", { text: "From " + FROM })
+    ]),
+    el("div", { class: "opts" }, [
+      hint,
+      box
+    ]),
+    el("div", { class: "row" }, [
+      el("button", { class: "link", id: "again", text: "Retake", onclick: function () { state.answers = []; intro(); } }),
+      el("div", { style: "display:flex;gap:12px;align-items:center;flex-wrap:wrap" }, [status, copy])
+    ])
+  );
+  window.scrollTo(0, 0);
+}
+
+intro();
+</script>
+</body>
+</html>
