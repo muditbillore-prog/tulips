@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Our Playlist</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;1,9..144,400;1,9..144,500&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: one column, a spinning disc as the focal point, a queue of song cards below, petals drifting behind. */
+:root {
+  --bg: #fff1f3;
+  --bg-2: #ffffff;
+  --ink: #4a1426;
+  --muted: #9a5b6b;
+  --accent: #e0425f;
+  --leaf: #8fb58a;
+  --line: #f4c9d2;
+  --display: "Fraunces", Georgia, "Times New Roman", serif;
+  --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+  background: radial-gradient(1100px 600px at 80% -10%, #ffd9e0 0%, transparent 60%), var(--bg);
+  color: var(--ink); font-family: var(--body); font-size: 17px; line-height: 1.55;
+  display: flex; justify-content: center; overflow-x: hidden;
+}
+main { position: relative; z-index: 1; width: 100%; max-width: 560px; padding: 36px 20px 56px; display: flex; flex-direction: column; gap: 30px; }
+.kicker { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); margin: 0; }
+h1, h2 { font-family: var(--display); font-weight: 500; margin: 0; line-height: 1.12; text-wrap: balance; }
+h1 { font-size: clamp(38px, 9vw, 52px); font-style: italic; }
+h2 { font-size: clamp(30px, 7vw, 38px); }
+p { margin: 0; }
+.lede { color: var(--muted); max-width: 46ch; }
+.head { display: flex; flex-direction: column; gap: 12px; animation: up .8s ease both; }
+
+.player { display: flex; flex-direction: column; align-items: center; gap: 22px; text-align: center; animation: up .8s .15s ease both; }
+.disc { position: relative; width: 190px; height: 172px; animation: beat 1.6s ease-in-out infinite; filter: drop-shadow(0 10px 34px rgba(224,66,95,.4)); }
+.disc svg { width: 100%; height: 100%; display: block; }
+.disc.swap { animation: pop .7s ease, beat 1.6s 0.7s ease-in-out infinite; }
+.ecg { width: 220px; height: 36px; overflow: visible; }
+.ecg .base { stroke: var(--line); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.ecg .live { stroke: var(--accent); stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: .28 1; animation: trace 2.4s linear infinite; }
+.now { display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.now .by { color: var(--muted); font-size: 15px; }
+.now .note { max-width: 40ch; font-family: var(--display); font-style: italic; font-size: 19px; line-height: 1.4; }
+.links { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.links a { color: var(--ink); text-decoration: none; border: 1px solid var(--line); border-radius: 999px; padding: 9px 18px; font-size: 15px; transition: border-color .15s, background .15s; }
+.links a:hover { border-color: var(--accent); background: var(--bg-2); }
+
+.queue { display: flex; flex-direction: column; gap: 10px; }
+.queue h3 { margin: 0 0 4px; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+.card {
+  font: inherit; color: var(--ink); text-align: left; cursor: pointer; width: 100%;
+  display: grid; grid-template-columns: 34px 1fr auto; gap: 14px; align-items: center;
+  background: var(--bg-2); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px;
+  transition: border-color .15s, transform .15s, background .15s;
+  opacity: 0; animation: up .6s ease forwards;
+}
+.card:hover { border-color: var(--accent); transform: translateX(3px); box-shadow: 0 6px 18px rgba(224,66,95,.12); }
+.card.on { border-color: var(--accent); background: #ffe3e8; }
+.card .n { font-family: var(--display); font-style: italic; color: var(--accent); font-size: 20px; font-variant-numeric: tabular-nums; }
+.card .t { display: block; font-weight: 600; }
+.card .s { display: block; font-size: 14px; color: var(--muted); }
+.card .tag { font-size: 12px; color: var(--muted); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.foot { color: var(--muted); font-size: 14px; text-align: center; }
+
+.petals { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.petals i { position: absolute; bottom: -40px; color: var(--accent); opacity: .35; font-style: normal; animation: rise linear infinite; }
+
+@keyframes up { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes beat { 0%,100% { transform: scale(1); } 12% { transform: scale(1.1); } 24% { transform: scale(1); } 36% { transform: scale(1.07); } 50% { transform: scale(1); } }
+@keyframes pop { 0% { transform: scale(1); } 35% { transform: scale(1.35); } 100% { transform: scale(1); } }
+@keyframes trace { from { stroke-dashoffset: 1.28; } to { stroke-dashoffset: 0; } }
+@keyframes rise { to { transform: translateY(-112vh) translateX(30px) rotate(25deg); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .disc, .disc.swap, .ecg .live, .petals i, .head, .player { animation: none !important; }
+  .card { animation: none !important; opacity: 1; }
+  .petals { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="petals" id="petals" aria-hidden="true"></div>
+<main>
+  <header class="head">
+    <p class="kicker">For Khushi</p>
+    <h1>Our playlist</h1>
+    <p class="lede">The first song is yours. The rest we'll add together. Tap a song and the heart answers.</p>
+  </header>
+
+  <section class="player" aria-live="polite">
+    <div class="disc" id="disc" aria-hidden="true">
+      <svg viewBox="0 0 100 90"><defs><linearGradient id="hg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff8fa3"/><stop offset="1" stop-color="#d62e50"/></linearGradient></defs>
+        <path d="M50 86 C20 62 4 46 4 28 C4 14 15 5 28 5 C38 5 46 11 50 18 C54 11 62 5 72 5 C85 5 96 14 96 28 C96 46 80 62 50 86Z" fill="url(#hg)"/>
+        <path d="M22 22 C24 16 30 13 35 14" stroke="#fff" stroke-opacity=".55" stroke-width="3" fill="none" stroke-linecap="round"/></svg>
+    </div>
+    <svg class="ecg" viewBox="0 0 200 40" aria-hidden="true">
+      <polyline class="base" pathLength="1" points="0,20 50,20 60,20 68,4 78,36 86,20 100,20 150,20 158,20 166,8 174,32 182,20 200,20"/>
+      <polyline class="live" pathLength="1" points="0,20 50,20 60,20 68,4 78,36 86,20 100,20 150,20 158,20 166,8 174,32 182,20 200,20"/>
+    </svg>
+    <div class="now">
+      <h2 id="title"></h2>
+      <p class="by" id="by"></p>
+      <p class="note" id="note"></p>
+    </div>
+    <div class="links" id="links"></div>
+  </section>
+
+  <section class="queue">
+    <h3>Up next</h3>
+    <div id="list"></div>
+  </section>
+
+  <p class="foot">Made by Mudit, with a few tulips.</p>
+</main>
+
+<script>
+/* To add a song, copy one line below and change the words. Keep "q" short: it is used for the search links. */
+var TRACKS = [
+  { title: "Khat", by: "Your song", note: "You told me about this one, so it goes first. I'm still waiting for the day we listen to it together.", q: "Khat song" },
+  { title: "Your next pick", by: "Tell me which one", note: "Send me one more song you love, and why, and it goes right here.", q: "" },
+  { title: "Ours", by: "To be found together", note: "The first song we both choose, the day we finally meet. This spot stays empty until then.", q: "" }
+];
+
+var disc = document.getElementById("disc");
+var cur = 0;
+
+function show(i, animate) {
+  cur = i;
+  var t = TRACKS[i];
+  document.getElementById("title").textContent = t.title;
+  document.getElementById("by").textContent = t.by;
+  document.getElementById("note").textContent = t.note;
+  var links = document.getElementById("links");
+  links.replaceChildren();
+  if (t.q) {
+    [["Open on Spotify", "https://open.spotify.com/search/"], ["Open on YouTube", "https://www.youtube.com/results?search_query="]].forEach(function (p) {
+      var a = document.createElement("a");
+      a.href = p[1] + encodeURIComponent(t.q);
+      a.target = "_blank"; a.rel = "noopener noreferrer"; a.textContent = p[0];
+      links.appendChild(a);
+    });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll(".card"), function (c, k) { c.classList.toggle("on", k === i); });
+  if (animate) { disc.classList.remove("swap"); void disc.offsetWidth; disc.classList.add("swap"); }
+}
+
+var list = document.getElementById("list");
+TRACKS.forEach(function (t, i) {
+  var b = document.createElement("button");
+  b.className = "card"; b.id = "track" + i; b.type = "button";
+  b.style.animationDelay = (0.35 + i * 0.12) + "s";
+  b.innerHTML = '<span class="n"></span><span><span class="t"></span><span class="s"></span></span><span class="tag"></span>';
+  b.querySelector(".n").textContent = String(i + 1).padStart(2, "0");
+  b.querySelector(".t").textContent = t.title;
+  b.querySelector(".s").textContent = t.by;
+  b.querySelector(".tag").textContent = i === 0 ? "now playing" : "";
+  b.addEventListener("click", function () {
+    Array.prototype.forEach.call(document.querySelectorAll(".card .tag"), function (g) { g.textContent = ""; });
+    b.querySelector(".tag").textContent = "now playing";
+    show(i, true);
+  });
+  list.appendChild(b);
+});
+
+var petals = document.getElementById("petals");
+for (var k = 0; k < 18; k++) {
+  var p = document.createElement("i");
+  p.textContent = "\u2665";
+  p.style.left = (Math.random() * 100) + "%";
+  p.style.fontSize = (12 + Math.random() * 22) + "px";
+  p.style.animationDuration = (9 + Math.random() * 10) + "s";
+  p.style.animationDelay = (-Math.random() * 18) + "s";
+  petals.appendChild(p);
+}
+
+show(0, false);
+</script>
+</body>
+</html>
