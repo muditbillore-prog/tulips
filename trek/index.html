@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Tulip Trek</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;1,9..144,400;1,9..144,500&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: a mountain header, then a vertical trail of stops that unlock one at a time, ending in a tulip summit. */
+:root {
+  --bg: #fff1f3;
+  --bg-2: #ffffff;
+  --ink: #4a1426;
+  --muted: #9a5b6b;
+  --accent: #e0425f;
+  --leaf: #6f9f6a;
+  --line: #f4c9d2;
+  --display: "Fraunces", Georgia, "Times New Roman", serif;
+  --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+  background: radial-gradient(1100px 600px at 80% -10%, #ffd9e0 0%, transparent 60%), var(--bg);
+  color: var(--ink); font-family: var(--body); font-size: 17px; line-height: 1.55;
+  display: flex; justify-content: center; overflow-x: hidden;
+}
+main { position: relative; z-index: 1; width: 100%; max-width: 560px; padding: 0 20px 80px; display: flex; flex-direction: column; gap: 28px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 500; margin: 0; line-height: 1.12; text-wrap: balance; }
+h1 { font-size: clamp(38px, 9vw, 52px); font-style: italic; }
+h2 { font-size: clamp(28px, 7vw, 36px); }
+p { margin: 0; }
+.kicker { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); margin: 0; }
+.lede { color: var(--muted); max-width: 46ch; }
+
+.hero { display: flex; flex-direction: column; gap: 14px; animation: up .8s ease both; }
+.mount { width: calc(100% + 40px); margin: 0 -20px; display: block; height: 150px; }
+.mount .m1 { fill: #f7b9c5; } .mount .m2 { fill: #ee8fa2; } .mount .m3 { fill: #d96a85; }
+.mount .snow { fill: #fff; opacity: .9; }
+.hiker { position: absolute; }
+.alt { position: sticky; top: 10px; z-index: 5; align-self: flex-start; display: inline-flex; gap: 8px; align-items: baseline; border: 1px solid var(--line); background: var(--bg-2); border-radius: 999px; padding: 6px 16px; font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; box-shadow: 0 4px 14px rgba(224,66,95,.12); }
+.alt b { color: var(--ink); font-weight: 600; }
+
+.btn { font: inherit; font-weight: 600; cursor: pointer; border-radius: 999px; padding: 14px 28px; background: var(--accent); color: #fff; border: 1px solid var(--accent); align-self: flex-start; transition: transform .15s, filter .15s; }
+.btn:hover { filter: brightness(1.06); transform: translateY(-1px); }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+.btn.ghost:hover { border-color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+.peak { position: relative; padding-top: 90px; }
+.peak::before { content: ""; position: absolute; inset: 0 -20px 0 -20px; z-index: 0;
+  clip-path: polygon(50% 0, 60% 9%, 100% 100%, 0 100%, 40% 9%);
+  background: linear-gradient(to bottom, #ffffff 0, #ffffff 7%, #ffd9e0 14%, #f9bfcb 100%); opacity: .85; }
+.trail { position: relative; z-index: 1; list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column-reverse; }
+.stop { display: grid; grid-template-columns: 44px 1fr; gap: 14px; position: relative; padding-bottom: 22px; width: 92%; }
+.stop:nth-child(odd) { margin-right: auto; }
+.stop:nth-child(even) { margin-left: auto; }
+.node { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; font-family: var(--display); font-style: italic; font-size: 19px; background: var(--bg-2); border: 2px solid var(--line); color: var(--muted); position: relative; z-index: 1; }
+.stop.current .node { border-color: var(--accent); color: var(--accent); animation: ring 1.8s ease-out infinite; }
+.stop.done .node { background: var(--accent); border-color: var(--accent); color: #fff; }
+.body { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.label { font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding-top: 12px; }
+.stop.locked .label::after { content: "  \00B7  locked"; }
+.card { background: var(--bg-2); border: 1px solid var(--line); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 12px; animation: up .55s ease both; }
+.card h3 { font-size: 24px; }
+.card .text { white-space: pre-line; }
+.card .q { font-family: var(--display); font-style: italic; font-size: 19px; }
+.open-btn { font: inherit; text-align: left; cursor: pointer; background: var(--bg-2); border: 1px dashed var(--accent); border-radius: 16px; padding: 18px; color: var(--accent); font-weight: 600; animation: up .55s ease both; }
+.open-btn:hover { background: #ffe3e8; }
+.hidden-card { border: 1px dashed var(--line); border-radius: 16px; padding: 18px; color: var(--muted); font-size: 15px; filter: blur(.4px); }
+.opts { display: flex; flex-direction: column; gap: 10px; }
+.opt { font: inherit; color: var(--ink); text-align: left; cursor: pointer; background: #fff7f8; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; transition: border-color .15s, background .15s; }
+.opt:hover { border-color: var(--accent); }
+.opt.on { border-color: var(--accent); background: #ffe3e8; }
+.links { display: flex; gap: 8px; flex-wrap: wrap; }
+.links a { color: var(--ink); text-decoration: none; border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; font-size: 14px; }
+.links a:hover { border-color: var(--accent); background: #fff7f8; }
+.songname { font-weight: 600; }
+.status { font-size: 14px; color: var(--muted); min-height: 20px; }
+.field { font: inherit; color: var(--ink); width: 100%; background: #fff7f8; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.field:focus { border-color: var(--accent); outline: none; }
+
+.garden { display: flex; justify-content: center; align-items: flex-end; gap: 3px; height: 110px; margin-top: 8px; width: 100%; overflow: hidden; }
+.garden svg { flex: 1 1 0; min-width: 0; max-width: 34px; height: 100px; transform-origin: bottom center; animation: grow 1.4s cubic-bezier(.2,.8,.2,1) both; }
+.finale { text-align: center; align-items: center; }
+
+.hearts { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.hearts i { position: absolute; bottom: -40px; color: var(--accent); opacity: .3; font-style: normal; animation: rise linear infinite; }
+
+@keyframes up { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes ring { 0% { box-shadow: 0 0 0 0 rgba(224,66,95,.45); } 100% { box-shadow: 0 0 0 16px rgba(224,66,95,0); } }
+@keyframes grow { from { transform: scaleY(0); opacity: 0; } to { transform: scaleY(1); opacity: 1; } }
+@keyframes rise { to { transform: translateY(-112vh) translateX(30px) rotate(25deg); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .hero, .card, .open-btn, .garden svg { animation: none !important; }
+  .stop.current .node, .hearts i { animation: none !important; }
+  .hearts { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="hearts" id="hearts" aria-hidden="true"></div>
+<main>
+  <header class="hero">
+    <svg class="mount" viewBox="0 0 560 150" preserveAspectRatio="none" aria-hidden="true">
+      <path class="m1" d="M0 150 L0 90 L70 40 L130 85 L210 20 L300 95 L380 45 L470 100 L560 55 L560 150Z"/>
+      <path class="m2" d="M0 150 L0 112 L90 70 L160 108 L250 56 L340 112 L430 76 L560 118 L560 150Z"/>
+      <path class="snow" d="M210 20 L190 42 L202 38 L212 46 L222 37 L232 42Z"/>
+      <path class="m3" d="M0 150 L0 132 L120 104 L240 134 L360 108 L470 136 L560 120 L560 150Z"/>
+    </svg>
+    <p class="kicker">For Khushi</p>
+    <h1>The tulip trek</h1>
+    <p class="lede" id="lede">Nine stops, from base camp to the summit. Each one has something from me, and you only reach the next by opening the one before it.</p>
+    <button class="btn" id="start">Start the trek</button>
+  </header>
+
+  <div class="alt" aria-live="polite">Altitude <b id="alt">1,500 m</b></div>
+  <div class="peak"><ol class="trail" id="trail" hidden></ol></div>
+</main>
+
+<script>
+/* Where her answers go. Her email address is not stored in this page. */
+var FORM_URL = "https://formspree.io/f/xjywopjy";
+
+var STOPS = [
+  { title: "Base camp", type: "note",
+    text: "It started with a comment on a reel.\nNeither of us planned this. Still, here we are." },
+  { title: "The real you", type: "note",
+    text: "You do what you want and you say what you think. I like that.\nAnd yes, you're beautiful. I'm just saying it plainly." },
+  { title: "Big brain", type: "note",
+    text: "Your political knowledge is seriously impressive.\nI'll lose every debate with you, and I've already accepted it." },
+  { title: "Tulips", type: "flower",
+    text: "Tulips, right? I remember.",
+    q: "Tell me one other flower you like.", ph: "Your flower" },
+  { title: "Annapurna", type: "note",
+    text: "Annapurna is on your list. If you ever take me along, I'll carry the snacks.\nAlso, I know you like handwritten letters. Noted." },
+  { title: "The quiet days", type: "note",
+    text: "There were 15 days of silence once, then you replied on Janmashtami.\nI'm glad you did." },
+  { title: "You decide", type: "choice",
+    text: "This one is your call.",
+    q: "When we finally meet in Delhi, where should we go first?",
+    options: ["A cafe", "A long walk", "Jantar Mantar", "The Supreme Court"] },
+  { title: "Two songs", type: "songs",
+    text: "Two songs I want to hear with you someday: \u201cKhat\u201d and \u201cBarbaad\u201d.",
+    songs: [["Khat", "Khat song"], ["Barbaad", "Barbaad song"]] },
+  { title: "The summit", type: "summit",
+    text: "You made it to the top.\n\nI really like you, Khushi. No big speech, I just wanted you to know.\n\nOne small request: bas kisi aur se mat pat jaana. (Joke. Mostly.)\n\nWhen I'm in Delhi, I'll bring tulips.",
+    q: "So, what do you say?",
+    options: ["Yes, let's see where this goes", "Let's meet first"],
+    after: { 0: "Good. Now I owe you tulips.",
+             1: "Fair. Let's meet first. The tulips are still on me." } }
+];
+
+var state = { unlocked: 0, opened: {}, choice: "", final: "", flower: "", sent: {} };
+try { var raw = localStorage.getItem("tulip-trek"); if (raw) state = Object.assign(state, JSON.parse(raw)); } catch (e) {}
+function persist() { try { localStorage.setItem("tulip-trek", JSON.stringify(state)); } catch (e) {} }
+
+function send(key, fields) {
+  if (state.sent[key]) return;
+  state.sent[key] = true; persist();
+  try {
+    fetch(FORM_URL, { method: "POST", headers: { "Content-Type": "application/json", "Accept": "application/json" }, body: JSON.stringify(fields) })
+      .catch(function () { state.sent[key] = false; persist(); });
+  } catch (e) { state.sent[key] = false; }
+}
+
+function el(tag, attrs, kids) {
+  var n = document.createElement(tag); attrs = attrs || {};
+  for (var k in attrs) {
+    if (k === "class") n.className = attrs[k];
+    else if (k === "text") n.textContent = attrs[k];
+    else if (k.slice(0, 2) === "on") n.addEventListener(k.slice(2), attrs[k]);
+    else n.setAttribute(k, attrs[k]);
+  }
+  (kids || []).forEach(function (c) { n.appendChild(c); });
+  return n;
+}
+
+function tulipSvg(color) {
+  return '<svg viewBox="0 0 64 96" aria-hidden="true"><path d="M32 94 V44" stroke="#6f9f6a" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M32 82 C19 78 13 69 11 58 C22 60 30 66 32 75Z" fill="#6f9f6a"/><path d="M32 46 C17 44 13 27 15 11 C21 18 27 20 32 13 C37 20 43 18 49 11 C51 27 47 44 32 46Z" fill="' + color + '"/></svg>';
+}
+function garden() {
+  var g = el("div", { class: "garden", "aria-hidden": "true" });
+  var cols = ["#e0425f", "#ff8fa3", "#d62e50", "#f7a1b1", "#e0425f", "#ff6b86", "#d62e50", "#ff8fa3", "#e0425f"];
+  cols.forEach(function (c, i) {
+    var s = el("div"); s.innerHTML = tulipSvg(c);
+    s.firstChild.style.animationDelay = (i * 0.15) + "s";
+    g.appendChild(s.firstChild);
+  });
+  return g;
+}
+
+var trail = document.getElementById("trail");
+function altText() {
+  var n = Object.keys(state.opened).length;
+  return Math.round(1500 + (8091 - 1500) * n / STOPS.length).toLocaleString("en-US") + " m";
+}
+
+function render(scrollTo) {
+  document.getElementById("alt").textContent = altText();
+  trail.replaceChildren();
+  STOPS.forEach(function (s, i) {
+    var status = i < state.unlocked - 1 ? "done" : (i === state.unlocked - 1 ? "current" : "locked");
+    var li = el("li", { class: "stop " + status, id: "stop" + i });
+    li.appendChild(el("div", { class: "node", text: String(i + 1) }));
+    var body = el("div", { class: "body" });
+    body.appendChild(el("div", { class: "label", text: "Stop " + (i + 1) }));
+    if (status === "locked") {
+      body.appendChild(el("div", { class: "hidden-card", text: "Something is waiting here. Open the stop before it first." }));
+    } else if (status === "current" && !state.opened[i]) {
+      body.appendChild(el("button", { class: "open-btn", id: "open" + i, text: "Open stop " + (i + 1), onclick: function () { state.opened[i] = true; persist(); render(i); } }));
+    } else {
+      body.appendChild(card(s, i, status));
+    }
+    li.appendChild(body);
+    trail.appendChild(li);
+  });
+  if (typeof scrollTo === "number") {
+    var t = document.getElementById("stop" + scrollTo);
+    if (t && t.scrollIntoView) t.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+}
+
+function card(s, i, status) {
+  var c = el("div", { class: "card" + (s.type === "summit" ? " finale" : "") });
+  c.appendChild(el("h3", { text: s.title }));
+  c.appendChild(el("p", { class: "text", text: s.text }));
+  if (s.type === "songs") {
+    s.songs.forEach(function (sg) {
+      var row = el("div", { class: "links" });
+      row.appendChild(el("span", { class: "songname", text: sg[0] }));
+      [["Spotify", "https://open.spotify.com/search/"], ["YouTube", "https://www.youtube.com/results?search_query="]].forEach(function (p) {
+        row.appendChild(el("a", { href: p[1] + encodeURIComponent(sg[1]), target: "_blank", rel: "noopener noreferrer", text: p[0] }));
+      });
+      c.appendChild(row);
+    });
+  }
+  if (s.type === "flower") {
+    c.appendChild(el("p", { class: "q", text: s.q }));
+    var inp = el("input", { type: "text", id: "flower", class: "field", placeholder: s.ph, "aria-label": s.q, maxlength: "80" });
+    inp.value = state.flower;
+    var fs = el("p", { class: "status", id: "fstatus", text: state.flower ? "Sent. I'll remember it." : "" });
+    var fb = el("button", { class: "btn ghost", id: "fsend", text: "Send", onclick: function () {
+      var v = inp.value.trim(); if (!v) return;
+      state.flower = v; persist();
+      state.sent.flower = false;
+      send("flower", { _subject: "Khushi told you her flower", favourite_flower: v });
+      fs.textContent = "Sent. I'll remember it.";
+    } });
+    c.appendChild(inp); c.appendChild(fb); c.appendChild(fs);
+  }
+  if (s.type === "choice") {
+    c.appendChild(el("p", { class: "q", text: s.q }));
+    var box = el("div", { class: "opts" });
+    s.options.forEach(function (o, k) {
+      box.appendChild(el("button", { class: "opt" + (state.choice === o ? " on" : ""), id: "opt" + k, text: o, onclick: function () {
+        state.choice = o; persist();
+        send("choice", { _subject: "Khushi picked where to meet first", first_meeting_place: o });
+        render();
+      } }));
+    });
+    c.appendChild(box);
+  }
+  if (s.type === "summit") {
+    c.appendChild(garden());
+    c.appendChild(el("p", { class: "q", text: s.q }));
+    if (!state.final) {
+      var box2 = el("div", { class: "opts" });
+      s.options.forEach(function (o, k) {
+        box2.appendChild(el("button", { class: "opt", id: "final" + k, text: o, onclick: function () {
+          state.final = String(k); persist();
+          send("final", { _subject: "Khushi answered at the summit", answer: o, first_meeting_place: state.choice || "(not chosen)", stops_opened: String(Object.keys(state.opened).length) });
+          render();
+        } }));
+      });
+      c.appendChild(box2);
+    } else {
+      c.appendChild(el("p", { class: "q", id: "after", text: s.after[state.final] }));
+    }
+  }
+  var last = i === STOPS.length - 1;
+  var ready = s.type === "choice" ? !!state.choice : true;
+  if (!last && status === "current" && ready) {
+    c.appendChild(el("button", { class: "btn", id: "next" + i, text: "Keep walking", onclick: function () {
+      state.unlocked = i + 2; persist(); render(i + 1); } }));
+  } else if (!last && s.type === "choice" && !ready) {
+    c.appendChild(el("p", { class: "status", text: "Pick one to keep walking." }));
+  }
+  return c;
+}
+
+document.getElementById("start").addEventListener("click", function () {
+  state.unlocked = Math.max(state.unlocked, 1); persist();
+  send("start", { _subject: "Khushi opened the trek", note: "She just pressed Start." });
+  document.getElementById("start").hidden = true;
+  trail.hidden = false;
+  render(0);
+});
+
+if (state.unlocked > 0) {
+  document.getElementById("start").hidden = true;
+  trail.hidden = false;
+  render();
+}
+
+var hearts = document.getElementById("hearts");
+for (var k = 0; k < 14; k++) {
+  var h = document.createElement("i");
+  h.textContent = "♥";
+  h.style.left = (Math.random() * 100) + "%";
+  h.style.fontSize = (12 + Math.random() * 20) + "px";
+  h.style.animationDuration = (10 + Math.random() * 10) + "s";
+  h.style.animationDelay = (-Math.random() * 18) + "s";
+  hearts.appendChild(h);
+}
+</script>
+</body>
+</html>
